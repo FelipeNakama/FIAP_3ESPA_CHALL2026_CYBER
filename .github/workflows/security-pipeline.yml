@@ -1,0 +1,118 @@
+name: HabitoPlus Security Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  # ============================================================
+  # FERRAMENTA 1: SAST com Bandit
+  # Analisa o código Python em busca de padrões de código
+  # inseguro, como uso de algoritmos criptográficos fracos,
+  # injeções de comando, uso de assert para segurança, etc.
+  # Reduz o risco de: Tampering, Elevation of Privilege
+  # ============================================================
+  sast-bandit:
+    name: "SAST - Bandit (Analise de Codigo)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Passo 1 - Baixar o codigo do repositorio"
+        uses: actions/checkout@v4
+
+      - name: "Passo 2 - Configurar Python 3.11"
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: "Passo 3 - Instalar o Bandit"
+        run: pip install bandit
+
+      - name: "Passo 4 - Executar analise SAST e salvar relatorio"
+        run: |
+          echo "Iniciando analise estatica de segurança do codigo HabitoPlus..."
+          bandit -r app/ -f txt -o bandit-report.txt || true
+          echo "=========================================="
+          echo "RESULTADO DA ANALISE SAST - BANDIT"
+          echo "=========================================="
+          cat bandit-report.txt
+
+      - name: "Passo 5 - Salvar relatorio como artefato"
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-sast-bandit
+          path: bandit-report.txt
+
+  # ============================================================
+  # FERRAMENTA 2: SCA com pip-audit
+  # Verifica todas as dependências declaradas em requirements.txt
+  # contra o banco de dados público de vulnerabilidades (CVEs),
+  # identificando versões de bibliotecas com falhas conhecidas.
+  # Reduz o risco de: ataques via cadeia de suprimentos
+  # ============================================================
+  sca-pip-audit:
+    name: "SCA - pip-audit (Analise de Dependencias)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Passo 1 - Baixar o codigo do repositorio"
+        uses: actions/checkout@v4
+
+      - name: "Passo 2 - Configurar Python 3.11"
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: "Passo 3 - Instalar o pip-audit"
+        run: pip install pip-audit
+
+      - name: "Passo 4 - Executar analise de dependencias"
+        run: |
+          echo "Verificando dependencias do HabitoPlus contra banco de CVEs..."
+          echo "=========================================="
+          echo "RESULTADO DA ANALISE SCA - PIP-AUDIT"
+          echo "=========================================="
+          pip-audit -r app/requirements.txt || true
+
+      - name: "Passo 5 - Gerar relatorio em formato JSON"
+        run: |
+          pip-audit -r app/requirements.txt -f json -o pip-audit-report.json || true
+
+      - name: "Passo 6 - Salvar relatorio como artefato"
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-sca-pip-audit
+          path: pip-audit-report.json
+
+  # ============================================================
+  # FERRAMENTA 3: Secret Scan com Gitleaks
+  # Varre todo o histórico de commits e os arquivos atuais
+  # do repositório em busca de credenciais, tokens, chaves
+  # de API e outros segredos expostos acidentalmente.
+  # Reduz o risco de: Information Disclosure de credenciais
+  # ============================================================
+  secret-scan-gitleaks:
+    name: "Secret Scan - Gitleaks (Varredura de Segredos)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Passo 1 - Baixar o codigo com historico completo"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "Passo 2 - Executar Gitleaks"
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: "Passo 3 - Confirmar conclusao da varredura"
+        run: |
+          echo "=========================================="
+          echo "Varredura de segredos concluida pelo Gitleaks"
+          echo "Verifique a aba Summary para o resultado"
+          echo "=========================================="

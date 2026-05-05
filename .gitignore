@@ -1,0 +1,27 @@
+# Arquivos de ambiente e segredos — NUNCA devem ser versionados
+.env
+.env.local
+.env.production
+.env.staging
+
+# Chaves e certificados
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Arquivos de configuração com credenciais
+secrets.json
+config/credentials.yml
+database.yml
+
+# Cache e arquivos temporários do Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Ambientes virtuais Python
+venv/
+.venv/
+env/
