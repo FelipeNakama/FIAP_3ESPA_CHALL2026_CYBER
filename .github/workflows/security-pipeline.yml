@@ -124,3 +124,53 @@ jobs:
         with:
           name: relatorio-secret-scan-gitleaks
           path: gitleaks-report.json
+          
+  # ============================================================
+  demo-gestao-segredos:
+    name: "Demo - Gestao de Segredos (Secrets)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Passo 1 - Baixar o codigo do repositorio"
+        uses: actions/checkout@v4
+
+      - name: "Passo 2 - Demonstrar acesso seguro ao segredo DATABASE_URL"
+        env:
+          DB_URL: ${{ secrets.DATABASE_URL }}
+          JWT_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          NOTIF_KEY: ${{ secrets.API_KEY_NOTIFICACOES }}
+          REWARD_KEY: ${{ secrets.API_KEY_RECOMPENSAS }}
+        run: |
+          echo "=========================================="
+          echo "DEMONSTRACAO DE GESTAO DE SEGREDOS"
+          echo "HabitoPlus - CarePlus"
+          echo "=========================================="
+          echo ""
+          echo "Verificando presenca dos segredos configurados..."
+          echo ""
+          if [ -n "$DB_URL" ]; then
+            echo "[OK] DATABASE_URL: configurado (${#DB_URL} caracteres)"
+          else
+            echo "[ERRO] DATABASE_URL: nao configurado"
+          fi
+          if [ -n "$JWT_KEY" ]; then
+            echo "[OK] JWT_SECRET_KEY: configurado (${#JWT_KEY} caracteres)"
+          else
+            echo "[ERRO] JWT_SECRET_KEY: nao configurado"
+          fi
+          if [ -n "$NOTIF_KEY" ]; then
+            echo "[OK] API_KEY_NOTIFICACOES: configurado (${#NOTIF_KEY} caracteres)"
+          else
+            echo "[ERRO] API_KEY_NOTIFICACOES: nao configurado"
+          fi
+          if [ -n "$REWARD_KEY" ]; then
+            echo "[OK] API_KEY_RECOMPENSAS: configurado (${#REWARD_KEY} caracteres)"
+          else
+            echo "[ERRO] API_KEY_RECOMPENSAS: nao configurado"
+          fi
+          echo ""
+          echo "=========================================="
+          echo "IMPORTANTE: Os valores reais dos segredos"
+          echo "nunca aparecem neste log. O GitHub os"
+          echo "mascara automaticamente em todos os outputs."
+          echo "=========================================="
