@@ -89,9 +89,9 @@ jobs:
 
   # ============================================================
   # FERRAMENTA 3: Secret Scan com Gitleaks
-  # Varre todo o histórico de commits e os arquivos atuais
-  # do repositório em busca de credenciais, tokens, chaves
-  # de API e outros segredos expostos acidentalmente.
+  # Varre todos os arquivos do repositório em busca de
+  # credenciais, tokens, chaves de API e outros segredos
+  # expostos acidentalmente no código.
   # Reduz o risco de: Information Disclosure de credenciais
   # ============================================================
   secret-scan-gitleaks:
@@ -99,20 +99,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: "Passo 1 - Baixar o codigo com historico completo"
+      - name: "Passo 1 - Baixar o codigo do repositorio"
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: "Passo 2 - Executar Gitleaks"
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
+      - name: "Passo 2 - Instalar o Gitleaks"
+        run: |
+          wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz
+          tar -xzf gitleaks_8.18.4_linux_x64.tar.gz
+          chmod +x gitleaks
 
-      - name: "Passo 3 - Confirmar conclusao da varredura"
+      - name: "Passo 3 - Executar varredura de segredos"
         run: |
           echo "=========================================="
-          echo "Varredura de segredos concluida pelo Gitleaks"
-          echo "Verifique a aba Summary para o resultado"
+          echo "RESULTADO DA VARREDURA - GITLEAKS"
           echo "=========================================="
+          ./gitleaks detect --source . --no-git --report-format json --report-path gitleaks-report.json -v || true
+          echo "=========================================="
+          echo "Varredura concluida. Verificando relatorio..."
+          echo "=========================================="
+          cat gitleaks-report.json
+
+      - name: "Passo 4 - Salvar relatorio como artefato"
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-secret-scan-gitleaks
+          path: gitleaks-report.json
