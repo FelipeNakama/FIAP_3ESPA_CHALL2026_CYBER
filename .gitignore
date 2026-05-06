@@ -1,27 +1,54 @@
-# Arquivos de ambiente e segredos — NUNCA devem ser versionados
+# ==============================================================
+# HábitoPlus — CarePlus
+# Arquivos que NUNCA devem ser versionados no repositório
+# ==============================================================
+
+
+# --- Segredos e credenciais ---
 .env
 .env.local
-.env.production
+.env.development
 .env.staging
-
-# Chaves e certificados
+.env.production
+secrets.json
+credentials.json
 *.pem
 *.key
 *.p12
 *.pfx
+service-account.json
 
-# Arquivos de configuração com credenciais
-secrets.json
+
+# --- Configurações com credenciais ---
+config/database.yml
 config/credentials.yml
-database.yml
+config/secrets.yml
 
-# Cache e arquivos temporários do Python
+
+# --- Cache e arquivos temporários do Python ---
 __pycache__/
 *.py[cod]
 *.egg-info/
 .pytest_cache/
+.mypy_cache/
+dist/
+build/
 
-# Ambientes virtuais Python
+
+# --- Ambientes virtuais Python ---
 venv/
 .venv/
 env/
+ENV/
+
+
+# --- Relatórios gerados localmente ---
+bandit-report.txt
+pip-audit-report.json
+gitleaks-report.json
+
+
+# --- Sistema operacional ---
+.DS_Store
+Thumbs.db
+desktop.ini
